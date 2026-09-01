@@ -71,6 +71,42 @@ class NoteDb(context: Context) : SQLiteOpenHelper(context, "wow_note.db", null, 
         }
     }
 
+    fun allNotes(): List<Note> {
+        readableDatabase.rawQuery("SELECT * FROM notes ORDER BY id ASC", null).use { c ->
+            val out = ArrayList<Note>(c.count)
+            while (c.moveToNext()) out += fromCursor(c)
+            return out
+        }
+    }
+
+    fun restoreAll(notes: List<Note>) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.delete("notes", null, null)
+            notes.forEach { note ->
+                val values = ContentValues().apply {
+                    put("id", note.id.takeIf { it > 0 })
+                    put("title", note.title)
+                    put("body", note.body)
+                    put("color", note.color)
+                    put("pinned", if (note.pinned) 1 else 0)
+                    put("note_type", note.noteType)
+                    put("archived", if (note.archived) 1 else 0)
+                    put("locked", if (note.locked) 1 else 0)
+                    put("calendar_date", note.calendarDate)
+                    put("reminder_at", note.reminderAt)
+                    put("created_at", note.createdAt)
+                    put("updated_at", note.updatedAt)
+                }
+                db.insertOrThrow("notes", null, values)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun listForDate(date: String): List<Note> {
         readableDatabase.query("notes", null, "calendar_date=? AND archived=0", arrayOf(date), null, null, "updated_at DESC").use { c ->
             val out = ArrayList<Note>(c.count)
