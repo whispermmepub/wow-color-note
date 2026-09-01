@@ -1,7 +1,6 @@
 package com.whispermmepub.wowcolornote.ui
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 
@@ -16,14 +15,26 @@ fun rounded(color: Int, radius: Float, strokeColor: Int? = null, strokeWidth: In
 fun View.pad(all: Int) = setPadding(all, all, all, all)
 
 object WoWPalette {
-    const val BG = 0xFFFFFDF7.toInt()
-    const val SURFACE = 0xFFFFFFFF.toInt()
-    const val TEXT = 0xFF25231F.toInt()
-    const val MUTED = 0xFF756F67.toInt()
-    const val ACCENT = 0xFFA46B2A.toInt()
-    const val LINE = 0xFFE9E2D7.toInt()
+    // Premium dark navy family shared across WoW tools.
+    const val BG = 0xFF07111F.toInt()
+    const val SURFACE = 0xFF0D1A2B.toInt()
+    const val CARD = 0xFF12233A.toInt()
+    const val CARD_ALT = 0xFF172A45.toInt()
+    const val TEXT = 0xFFF3F6FB.toInt()
+    const val MUTED = 0xFFA8B4C7.toInt()
+    const val ACCENT = 0xFF5EDBD6.toInt()
+    const val GOLD = 0xFFE6C46A.toInt()
+    const val LINE = 0xFF263B57.toInt()
+    const val DANGER = 0xFFFF7D87.toInt()
+    const val TODAY = 0xFF203B5D.toInt()
+
     val NOTE_COLORS = intArrayOf(
-        0xFFFFF4B8.toInt(), 0xFFFFD9C9.toInt(), 0xFFDCEFD8.toInt(),
-        0xFFDDEBFA.toInt(), 0xFFE9DDF6.toInt(), 0xFFFFE4A8.toInt(), 0xFFF1EEE8.toInt()
+        0xFFE6C46A.toInt(),
+        0xFF5EDBD6.toInt(),
+        0xFF7DA4FF.toInt(),
+        0xFF9A82FF.toInt(),
+        0xFFFF8FA3.toInt(),
+        0xFF7FD39A.toInt(),
+        0xFFFFA75E.toInt()
     )
 }
