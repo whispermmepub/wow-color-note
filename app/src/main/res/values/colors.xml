@@ -1,0 +1,7 @@
+<resources>
+    <color name="wow_bg">#FFFDF7</color>
+    <color name="wow_surface">#FFFFFFFF</color>
+    <color name="wow_text">#25231F</color>
+    <color name="wow_accent">#A46B2A</color>
+    <color name="wow_muted">#756F67</color>
+</resources>
