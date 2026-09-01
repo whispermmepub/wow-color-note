@@ -1,7 +1,10 @@
 <resources>
-    <color name="wow_bg">#FFFDF7</color>
-    <color name="wow_surface">#FFFFFFFF</color>
-    <color name="wow_text">#25231F</color>
-    <color name="wow_accent">#A46B2A</color>
-    <color name="wow_muted">#756F67</color>
+    <color name="wow_bg">#07111F</color>
+    <color name="wow_surface">#0D1A2B</color>
+    <color name="wow_card">#12233A</color>
+    <color name="wow_text">#F3F6FB</color>
+    <color name="wow_accent">#5EDBD6</color>
+    <color name="wow_gold">#E6C46A</color>
+    <color name="wow_muted">#A8B4C7</color>
+    <color name="wow_line">#263B57</color>
 </resources>
