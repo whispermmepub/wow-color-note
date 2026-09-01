@@ -30,12 +30,17 @@ class NoteDb(context: Context) : SQLiteOpenHelper(context, "wow_note.db", null, 
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
 
-    fun list(query: String = ""): List<Note> {
+    fun list(query: String = "", sort: String = "modified"): List<Note> {
         val q = query.trim()
+        val order = when (sort) {
+            "created" -> "pinned DESC, created_at DESC"
+            "title" -> "pinned DESC, title COLLATE NOCASE ASC, updated_at DESC"
+            else -> "pinned DESC, updated_at DESC"
+        }
         val sql = if (q.isEmpty()) {
-            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes ORDER BY pinned DESC,updated_at DESC"
+            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes ORDER BY $order"
         } else {
-            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes WHERE title LIKE ? OR body LIKE ? ORDER BY pinned DESC,updated_at DESC"
+            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes WHERE title LIKE ? OR body LIKE ? ORDER BY $order"
         }
         val args = if (q.isEmpty()) emptyArray() else arrayOf("%$q%", "%$q%")
         readableDatabase.rawQuery(sql, args).use { c ->
