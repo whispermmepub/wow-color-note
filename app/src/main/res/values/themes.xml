@@ -1,5 +1,5 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.WoWNote" parent="Theme.Material3.DayNight.NoActionBar">
+<resources>
+    <style name="Theme.WoWNote" parent="Theme.AppCompat.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
@@ -7,9 +7,7 @@
         <item name="android:statusBarColor">@color/wow_bg</item>
         <item name="android:windowBackground">@color/wow_bg</item>
         <item name="colorPrimary">@color/wow_accent</item>
-        <item name="colorOnPrimary">@color/wow_bg</item>
-        <item name="colorSurface">@color/wow_surface</item>
-        <item name="colorOnSurface">@color/wow_text</item>
+        <item name="colorAccent">@color/wow_accent</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:forceDarkAllowed">false</item>
     </style>
