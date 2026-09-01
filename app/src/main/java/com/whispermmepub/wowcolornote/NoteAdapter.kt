@@ -2,6 +2,7 @@ package com.whispermmepub.wowcolornote
 
 import android.graphics.Typeface
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -32,10 +33,9 @@ class NoteAdapter(
         val root = LinearLayout(c).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(c.dp(13), c.dp(12), c.dp(13), c.dp(12))
-            elevation = c.dp(2).toFloat()
+            elevation = c.dp(1).toFloat()
         }
-        val strip = android.view.View(c)
+        val strip = View(c)
         val textWrap = LinearLayout(c).apply { orientation = LinearLayout.VERTICAL }
         val title = TextView(c).apply { setTextColor(WoWPalette.TEXT); setTypeface(font, Typeface.BOLD) }
         val body = TextView(c).apply { setTextColor(WoWPalette.MUTED); typeface = font; setLineSpacing(0f, 1.12f) }
@@ -44,7 +44,7 @@ class NoteAdapter(
         textWrap.addView(body)
         textWrap.addView(meta)
         root.addView(strip)
-        root.addView(textWrap, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        root.addView(textWrap)
         return Holder(root, strip, textWrap, title, body, meta)
     }
 
@@ -55,33 +55,47 @@ class NoteAdapter(
         val compact = viewMode == "list"
 
         h.root.orientation = if (grid) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-        h.root.gravity = if (grid) Gravity.START else Gravity.CENTER_VERTICAL
-        h.root.setPadding(c.dp(13), c.dp(if (grid) 14 else 10), c.dp(13), c.dp(if (grid) 14 else 10))
+        h.root.gravity = if (grid) Gravity.TOP or Gravity.START else Gravity.CENTER_VERTICAL
+        h.root.setPadding(c.dp(12), c.dp(if (grid) 12 else 9), c.dp(12), c.dp(if (grid) 12 else 9))
         h.root.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-            setMargins(c.dp(5), c.dp(5), c.dp(5), c.dp(5))
+            setMargins(c.dp(4), c.dp(4), c.dp(4), c.dp(4))
         }
-        h.root.background = rounded(if (n.pinned) WoWPalette.CARD_ALT else WoWPalette.CARD, c.dp(18).toFloat(), WoWPalette.LINE, c.dp(1))
+        h.root.minimumHeight = if (grid) c.dp(if (viewMode == "large_grid") 154 else 118) else 0
+        h.root.background = rounded(if (n.pinned) WoWPalette.CARD_ALT else WoWPalette.CARD, c.dp(16).toFloat(), WoWPalette.LINE, c.dp(1))
 
         h.strip.background = rounded(n.color, c.dp(4).toFloat())
         h.strip.layoutParams = if (grid) {
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, c.dp(5)).apply { setMargins(0, 0, 0, c.dp(10)) }
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, c.dp(5)).apply { setMargins(0, 0, 0, c.dp(9)) }
         } else {
-            LinearLayout.LayoutParams(c.dp(5), if (compact) c.dp(42) else ViewGroup.LayoutParams.MATCH_PARENT).apply { setMargins(0, 0, c.dp(12), 0) }
+            LinearLayout.LayoutParams(c.dp(5), if (compact) c.dp(38) else ViewGroup.LayoutParams.MATCH_PARENT).apply { setMargins(0, 0, c.dp(11), 0) }
         }
-        h.textWrap.setPadding(0, 0, 0, 0)
+        h.textWrap.layoutParams = if (grid) {
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        } else {
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        }
 
-        h.title.text = (if (n.pinned) "★  " else "") + n.title.ifBlank { "Untitled" }
-        h.title.textSize = if (grid) 16f else 17f
+        val state = buildString {
+            if (n.pinned) append("★ ")
+            if (n.locked) append("🔒 ")
+            if (n.noteType == "checklist") append("☑ ")
+        }
+        h.title.text = state + n.title.ifBlank { "Untitled" }
+        h.title.textSize = if (grid) 15.5f else 17f
         h.title.maxLines = if (grid) 2 else 1
         h.title.typeface = Typeface.create(font, Typeface.BOLD)
 
-        h.body.text = n.body.replace('\n', ' ').trim().ifBlank { "Empty note" }
+        h.body.text = if (n.locked) "Locked note" else n.body.replace('\n', ' ').trim().ifBlank { "Empty note" }
         h.body.textSize = if (grid) 13f else 14f
-        h.body.maxLines = when (viewMode) { "list" -> 0; "large_grid" -> 6; "grid" -> 4; else -> 2 }
-        h.body.visibility = if (compact) android.view.View.GONE else android.view.View.VISIBLE
+        h.body.maxLines = when (viewMode) { "list" -> 0; "large_grid" -> 5; "grid" -> 3; else -> 2 }
+        h.body.visibility = if (compact) View.GONE else View.VISIBLE
         h.body.typeface = font
 
-        h.meta.text = dateFmt.format(Date(n.updatedAt))
+        h.meta.text = buildString {
+            append(dateFmt.format(Date(n.updatedAt)))
+            if (n.calendarDate.isNotBlank()) append("  ·  📅")
+            if (n.reminderAt > 0) append("  ·  ⏰")
+        }
         h.meta.textSize = 11f
         h.meta.setPadding(0, c.dp(6), 0, 0)
 
@@ -93,7 +107,7 @@ class NoteAdapter(
 
     class Holder(
         val root: LinearLayout,
-        val strip: android.view.View,
+        val strip: View,
         val textWrap: LinearLayout,
         val title: TextView,
         val body: TextView,
