@@ -7,6 +7,12 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.whispermmepub.wowcolornote.model.Note
 
 class NoteDb(context: Context) : SQLiteOpenHelper(context, "wow_note.db", null, 1) {
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.setForeignKeyConstraintsEnabled(true)
+        db.enableWriteAheadLogging()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""
             CREATE TABLE notes(
@@ -26,35 +32,22 @@ class NoteDb(context: Context) : SQLiteOpenHelper(context, "wow_note.db", null, 
 
     fun list(query: String = ""): List<Note> {
         val q = query.trim()
-        val selection = if (q.isEmpty()) null else "title LIKE ? OR body LIKE ?"
-        val args = if (q.isEmpty()) null else arrayOf("%$q%", "%$q%")
-        readableDatabase.query("notes", null, selection, args, null, null, "pinned DESC, updated_at DESC").use { c ->
+        val sql = if (q.isEmpty()) {
+            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes ORDER BY pinned DESC,updated_at DESC"
+        } else {
+            "SELECT id,title,substr(body,1,420) body,color,pinned,created_at,updated_at FROM notes WHERE title LIKE ? OR body LIKE ? ORDER BY pinned DESC,updated_at DESC"
+        }
+        val args = if (q.isEmpty()) emptyArray() else arrayOf("%$q%", "%$q%")
+        readableDatabase.rawQuery(sql, args).use { c ->
             val out = ArrayList<Note>(c.count)
-            while (c.moveToNext()) out += Note(
-                id = c.getLong(c.getColumnIndexOrThrow("id")),
-                title = c.getString(c.getColumnIndexOrThrow("title")),
-                body = c.getString(c.getColumnIndexOrThrow("body")),
-                color = c.getInt(c.getColumnIndexOrThrow("color")),
-                pinned = c.getInt(c.getColumnIndexOrThrow("pinned")) == 1,
-                createdAt = c.getLong(c.getColumnIndexOrThrow("created_at")),
-                updatedAt = c.getLong(c.getColumnIndexOrThrow("updated_at"))
-            )
+            while (c.moveToNext()) out += fromCursor(c)
             return out
         }
     }
 
     fun get(id: Long): Note? {
         readableDatabase.query("notes", null, "id=?", arrayOf(id.toString()), null, null, null, "1").use { c ->
-            if (!c.moveToFirst()) return null
-            return Note(
-                id = c.getLong(c.getColumnIndexOrThrow("id")),
-                title = c.getString(c.getColumnIndexOrThrow("title")),
-                body = c.getString(c.getColumnIndexOrThrow("body")),
-                color = c.getInt(c.getColumnIndexOrThrow("color")),
-                pinned = c.getInt(c.getColumnIndexOrThrow("pinned")) == 1,
-                createdAt = c.getLong(c.getColumnIndexOrThrow("created_at")),
-                updatedAt = c.getLong(c.getColumnIndexOrThrow("updated_at"))
-            )
+            return if (c.moveToFirst()) fromCursor(c) else null
         }
     }
 
@@ -73,4 +66,14 @@ class NoteDb(context: Context) : SQLiteOpenHelper(context, "wow_note.db", null, 
     }
 
     fun delete(id: Long) { writableDatabase.delete("notes", "id=?", arrayOf(id.toString())) }
+
+    private fun fromCursor(c: android.database.Cursor) = Note(
+        id = c.getLong(c.getColumnIndexOrThrow("id")),
+        title = c.getString(c.getColumnIndexOrThrow("title")),
+        body = c.getString(c.getColumnIndexOrThrow("body")),
+        color = c.getInt(c.getColumnIndexOrThrow("color")),
+        pinned = c.getInt(c.getColumnIndexOrThrow("pinned")) == 1,
+        createdAt = c.getLong(c.getColumnIndexOrThrow("created_at")),
+        updatedAt = c.getLong(c.getColumnIndexOrThrow("updated_at"))
+    )
 }
