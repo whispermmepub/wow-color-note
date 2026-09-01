@@ -1,6 +1,6 @@
-# WoW Color Note
+# WoW Note
 
-A speed-first offline Android note app inspired by the simplicity of ColorNote, with Myanmar calendar support, custom fonts, fast edit/preview, folders, colors and local SQLite storage.
+A speed-first offline Android note app inspired by the simplicity of ColorNote, with Myanmar calendar support, custom fonts, fast edit/preview, note colors and local SQLite storage.
 
 ## Design goals
 - Instant startup and note opening
