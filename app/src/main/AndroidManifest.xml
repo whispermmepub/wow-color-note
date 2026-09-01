@@ -11,6 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WoWNote">
         <receiver android:name=".reminder.ReminderReceiver" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:screenOrientation="portrait" />
         <activity android:name=".CalendarActivity" android:screenOrientation="portrait" />
         <activity android:name=".EditorActivity" />
         <activity android:name=".MainActivity" android:exported="true">
