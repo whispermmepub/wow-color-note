@@ -122,7 +122,7 @@ class EditorActivity : AppCompatActivity() {
             gravity = Gravity.CENTER
             setTextColor(WoWPalette.ACCENT)
             setPadding(dp(9), dp(7), dp(9), dp(7))
-            background = rounded(WoWPalette.SURFACE_ALT, dp(11).toFloat(), WoWPalette.LINE, dp(1))
+            background = rounded(WoWPalette.CARD_ALT, dp(11).toFloat(), WoWPalette.LINE, dp(1))
             setOnClickListener { click() }
         }
         val gap = { View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(6), 1) } }
