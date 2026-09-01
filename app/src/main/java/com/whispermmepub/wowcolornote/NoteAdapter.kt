@@ -20,10 +20,12 @@ class NoteAdapter(
     private val onLongClick: (Note) -> Unit
 ) : RecyclerView.Adapter<NoteAdapter.Holder>() {
     private val items = ArrayList<Note>()
-    private val dateFmt = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
+    private val dateFmt = SimpleDateFormat("MMM d", Locale.getDefault())
+    private var viewMode = "details"
 
     fun submit(notes: List<Note>) { items.clear(); items.addAll(notes); notifyDataSetChanged() }
     fun setTypeface(tf: Typeface) { font = tf; notifyDataSetChanged() }
+    fun setViewMode(mode: String) { viewMode = mode; notifyDataSetChanged() }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val c = parent.context
@@ -32,54 +34,57 @@ class NoteAdapter(
             gravity = Gravity.CENTER_VERTICAL
             setPadding(c.dp(13), c.dp(12), c.dp(13), c.dp(12))
             elevation = c.dp(2).toFloat()
-            layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(c.dp(4), c.dp(6), c.dp(4), c.dp(6))
-            }
         }
-        val strip = android.view.View(c).apply {
-            layoutParams = LinearLayout.LayoutParams(c.dp(5), ViewGroup.LayoutParams.MATCH_PARENT)
-            background = rounded(WoWPalette.ACCENT, c.dp(4).toFloat())
-        }
-        val textWrap = LinearLayout(c).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(c.dp(13), 0, 0, 0)
-        }
-        val title = TextView(c).apply {
-            setTextColor(WoWPalette.TEXT)
-            textSize = 17f
-            maxLines = 1
-            setTypeface(font, Typeface.BOLD)
-        }
-        val body = TextView(c).apply {
-            setTextColor(WoWPalette.MUTED)
-            textSize = 14f
-            maxLines = 2
-            typeface = font
-            setLineSpacing(0f, 1.12f)
-        }
-        val meta = TextView(c).apply {
-            setTextColor(WoWPalette.MUTED)
-            textSize = 11f
-            setPadding(0, c.dp(6), 0, 0)
-        }
+        val strip = android.view.View(c)
+        val textWrap = LinearLayout(c).apply { orientation = LinearLayout.VERTICAL }
+        val title = TextView(c).apply { setTextColor(WoWPalette.TEXT); setTypeface(font, Typeface.BOLD) }
+        val body = TextView(c).apply { setTextColor(WoWPalette.MUTED); typeface = font; setLineSpacing(0f, 1.12f) }
+        val meta = TextView(c).apply { setTextColor(WoWPalette.MUTED) }
         textWrap.addView(title)
         textWrap.addView(body)
         textWrap.addView(meta)
         root.addView(strip)
         root.addView(textWrap, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        return Holder(root, strip, title, body, meta)
+        return Holder(root, strip, textWrap, title, body, meta)
     }
 
     override fun onBindViewHolder(h: Holder, position: Int) {
         val n = items[position]
-        val cardColor = if (n.pinned) WoWPalette.CARD_ALT else WoWPalette.CARD
-        h.root.background = rounded(cardColor, h.root.context.dp(18).toFloat(), WoWPalette.LINE, h.root.context.dp(1))
-        h.strip.background = rounded(n.color, h.root.context.dp(4).toFloat())
+        val c = h.root.context
+        val grid = viewMode == "grid" || viewMode == "large_grid"
+        val compact = viewMode == "list"
+
+        h.root.orientation = if (grid) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        h.root.gravity = if (grid) Gravity.START else Gravity.CENTER_VERTICAL
+        h.root.setPadding(c.dp(13), c.dp(if (grid) 14 else 10), c.dp(13), c.dp(if (grid) 14 else 10))
+        h.root.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(c.dp(5), c.dp(5), c.dp(5), c.dp(5))
+        }
+        h.root.background = rounded(if (n.pinned) WoWPalette.CARD_ALT else WoWPalette.CARD, c.dp(18).toFloat(), WoWPalette.LINE, c.dp(1))
+
+        h.strip.background = rounded(n.color, c.dp(4).toFloat())
+        h.strip.layoutParams = if (grid) {
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, c.dp(5)).apply { setMargins(0, 0, 0, c.dp(10)) }
+        } else {
+            LinearLayout.LayoutParams(c.dp(5), if (compact) c.dp(42) else ViewGroup.LayoutParams.MATCH_PARENT).apply { setMargins(0, 0, c.dp(12), 0) }
+        }
+        h.textWrap.setPadding(0, 0, 0, 0)
+
         h.title.text = (if (n.pinned) "★  " else "") + n.title.ifBlank { "Untitled" }
-        h.body.text = n.body.replace('\n', ' ').trim().ifBlank { "Empty note" }
-        h.meta.text = dateFmt.format(Date(n.updatedAt))
+        h.title.textSize = if (grid) 16f else 17f
+        h.title.maxLines = if (grid) 2 else 1
         h.title.typeface = Typeface.create(font, Typeface.BOLD)
+
+        h.body.text = n.body.replace('\n', ' ').trim().ifBlank { "Empty note" }
+        h.body.textSize = if (grid) 13f else 14f
+        h.body.maxLines = when (viewMode) { "list" -> 0; "large_grid" -> 6; "grid" -> 4; else -> 2 }
+        h.body.visibility = if (compact) android.view.View.GONE else android.view.View.VISIBLE
         h.body.typeface = font
+
+        h.meta.text = dateFmt.format(Date(n.updatedAt))
+        h.meta.textSize = 11f
+        h.meta.setPadding(0, c.dp(6), 0, 0)
+
         h.root.setOnClickListener { onClick(n) }
         h.root.setOnLongClickListener { onLongClick(n); true }
     }
@@ -89,6 +94,7 @@ class NoteAdapter(
     class Holder(
         val root: LinearLayout,
         val strip: android.view.View,
+        val textWrap: LinearLayout,
         val title: TextView,
         val body: TextView,
         val meta: TextView
